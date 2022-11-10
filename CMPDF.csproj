@@ -11,9 +11,11 @@
     <Authors>airmanx</Authors>
     <Company>STUST</Company>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="iTextSharp" Version="5.5.13.3" />
+  <ItemGroup>      
+    <None Include="README.md" Pack="true" PackagePath="\" />        
+  </ItemGroup>
+  <ItemGroup>   
+    <PackageReference Include="iTextSharp.NetCore" Version="5.5.13.1" />   
     <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
   </ItemGroup>
 
