@@ -6,7 +6,7 @@ using iTextSharp.text.pdf.parser;
 using System.Drawing;
 public class PDF
 {
-    public byte[] compression(byte[] sourcepdf)
+    public byte[] compression(byte[] sourcepdf, int maxWidth = 800)
     {
         MemoryStream ms = new MemoryStream();
         PdfReader pdf = new PdfReader(sourcepdf);
@@ -38,18 +38,23 @@ public class PDF
                                 PdfObject pdfObj = pdf.GetPdfObject(XrefIndex);
 
                                 PdfStream pdfStrem = (PdfStream)pdfObj;
-                                var pdfImage = new PdfImageObject((PRStream)pdfStrem);
-                                //var img = pdfImage.GetDrawingImage();    
-                                var pdfimg = pdfImage.GetImageAsBytes();
-                                pdfimg = ResizeImage(pdfimg, 800);
+                                byte[] pdfimg = PdfReader.GetStreamBytesRaw((PRStream)pdfStrem);
 
-                                iTextSharp.text.Image img = iTextSharp.text.Image.GetInstance(pdfimg);
+                                if (IsImage(pdfimg))
+                                {
+                                    //var pdfImage = new PdfImageObject((PRStream)pdfStrem);
+                                    //var img = pdfImage.GetDrawingImage();    
+                                    //var pdfimg = pdfImage.GetImageAsBytes();
+                                    pdfimg = ResizeImage(pdfimg, maxWidth);
 
-                                PdfReader.KillIndirect(obj);
-                                iTextSharp.text.Image maskImage = img.ImageMask;
-                                if (maskImage != null) writer.AddDirectImageSimple(maskImage);
-                                writer.AddDirectImageSimple(img, (PRIndirectReference)obj);
-                                //break;
+                                    iTextSharp.text.Image img = iTextSharp.text.Image.GetInstance(pdfimg);
+
+                                    PdfReader.KillIndirect(obj);
+                                    iTextSharp.text.Image maskImage = img.ImageMask;
+                                    if (maskImage != null) writer.AddDirectImageSimple(maskImage);
+                                    writer.AddDirectImageSimple(img, (PRIndirectReference)obj);
+                                    //break;
+                                }
                             }
                             else if (PdfName.FORM.Equals(type))
                             {
@@ -80,7 +85,7 @@ public class PDF
 
             System.Drawing.Bitmap thumbnailBitmap = new System.Drawing.Bitmap(newWidth, newHeight);
             System.Drawing.Graphics thumbnailGraph = System.Drawing.Graphics.FromImage(thumbnailBitmap);
-            
+
             thumbnailGraph.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
             thumbnailGraph.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
             thumbnailGraph.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.High;
@@ -102,7 +107,7 @@ public class PDF
     {
         try
         {
-            const int INT_SIZE = 4; 
+            const int INT_SIZE = 4;
 
             var bmp = System.Text.Encoding.ASCII.GetBytes("BM");     // BMP
             var gif = System.Text.Encoding.ASCII.GetBytes("GIF");    // GIF
@@ -137,11 +142,16 @@ public class PDF
             if (jpeg2.SequenceEqual(buffer.Take(jpeg2.Length)))
                 return "jpeg";
 
-            return "unknow";
+            return "unknown";
         }
         catch (Exception)
         {
-            return "unknow";
-        }        
+            return "unknown";
+        }
+    }
+
+    private bool IsImage(byte[] byteArray)
+    {
+        return GetImageFormat(byteArray) != "unknown" ? true : false;
     }
 }
