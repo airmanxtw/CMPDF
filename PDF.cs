@@ -97,4 +97,51 @@ public class PDF
         else
             return sourceimg;
     }
+
+    private string GetImageFormat(byte[] byteArray)
+    {
+        try
+        {
+            const int INT_SIZE = 4; 
+
+            var bmp = System.Text.Encoding.ASCII.GetBytes("BM");     // BMP
+            var gif = System.Text.Encoding.ASCII.GetBytes("GIF");    // GIF
+            var png = new byte[] { 137, 80, 78, 71 };                // PNG
+            var tiff = new byte[] { 73, 73, 42 };                    // TIFF
+            var tiff2 = new byte[] { 77, 77, 42 };                   // TIFF
+            var jpeg = new byte[] { 255, 216, 255, 224 };            // jpeg
+            var jpeg2 = new byte[] { 255, 216, 255, 225 };           // jpeg2 (canon)
+
+            // Copy the first 4 bytes into our buffer 
+            var buffer = new byte[INT_SIZE];
+            System.Buffer.BlockCopy(byteArray, 0, buffer, 0, INT_SIZE);
+
+            if (bmp.SequenceEqual(buffer.Take(bmp.Length)))
+                return "bmp";
+
+            if (gif.SequenceEqual(buffer.Take(gif.Length)))
+                return "gif";
+
+            if (png.SequenceEqual(buffer.Take(png.Length)))
+                return "png";
+
+            if (tiff.SequenceEqual(buffer.Take(tiff.Length)))
+                return "tiff";
+
+            if (tiff2.SequenceEqual(buffer.Take(tiff2.Length)))
+                return "tiff";
+
+            if (jpeg.SequenceEqual(buffer.Take(jpeg.Length)))
+                return "jpeg";
+
+            if (jpeg2.SequenceEqual(buffer.Take(jpeg2.Length)))
+                return "jpeg";
+
+            return "unknow";
+        }
+        catch (Exception)
+        {
+            return "unknow";
+        }        
+    }
 }
