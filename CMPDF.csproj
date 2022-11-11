@@ -8,7 +8,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageId>CMPDF</PackageId>
     <Version>0.1.1</Version>
-    <PackageTags>pdf;resize image in pdf;reduce size</PackageTags>
+    <PackageTags>pdf;resizeImage;reduceSize</PackageTags>
     <Description>reduce PDF image size to reduce the PDF file size</Description>
     <Authors>airmanx</Authors>
     <Company>STUST</Company>
