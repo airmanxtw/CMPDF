@@ -6,10 +6,10 @@ using iTextSharp.text.pdf.parser;
 using System.Drawing;
 public class PDF
 {
-    public byte[] compression(byte[] sourcepdf, int maxWidth = 800)
+    public byte[] compression(byte[] sourcePdf, int imageMaxWidth = 800)
     {
         MemoryStream ms = new MemoryStream();
-        PdfReader pdf = new PdfReader(sourcepdf);
+        PdfReader pdf = new PdfReader(sourcePdf);
 
         PdfStamper stp = new PdfStamper(pdf, ms);
         PdfWriter writer = stp.Writer;
@@ -42,7 +42,7 @@ public class PDF
 
                                 if (IsImage(pdfimg))
                                 {                                   
-                                    pdfimg = ResizeImage(pdfimg, maxWidth);
+                                    pdfimg = ResizeImage(pdfimg, imageMaxWidth);
                                     iTextSharp.text.Image img = iTextSharp.text.Image.GetInstance(pdfimg);
                                     PdfReader.KillIndirect(obj);
                                     iTextSharp.text.Image maskImage = img.ImageMask;
