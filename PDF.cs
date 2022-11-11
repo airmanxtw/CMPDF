@@ -41,19 +41,13 @@ public class PDF
                                 byte[] pdfimg = PdfReader.GetStreamBytesRaw((PRStream)pdfStrem);
 
                                 if (IsImage(pdfimg))
-                                {
-                                    //var pdfImage = new PdfImageObject((PRStream)pdfStrem);
-                                    //var img = pdfImage.GetDrawingImage();    
-                                    //var pdfimg = pdfImage.GetImageAsBytes();
+                                {                                   
                                     pdfimg = ResizeImage(pdfimg, maxWidth);
-
                                     iTextSharp.text.Image img = iTextSharp.text.Image.GetInstance(pdfimg);
-
                                     PdfReader.KillIndirect(obj);
                                     iTextSharp.text.Image maskImage = img.ImageMask;
                                     if (maskImage != null) writer.AddDirectImageSimple(maskImage);
-                                    writer.AddDirectImageSimple(img, (PRIndirectReference)obj);
-                                    //break;
+                                    writer.AddDirectImageSimple(img, (PRIndirectReference)obj);                                    
                                 }
                             }
                             else if (PdfName.FORM.Equals(type))
@@ -116,8 +110,7 @@ public class PDF
             var tiff2 = new byte[] { 77, 77, 42 };                   // TIFF
             var jpeg = new byte[] { 255, 216, 255, 224 };            // jpeg
             var jpeg2 = new byte[] { 255, 216, 255, 225 };           // jpeg2 (canon)
-
-            // Copy the first 4 bytes into our buffer 
+             
             var buffer = new byte[INT_SIZE];
             System.Buffer.BlockCopy(byteArray, 0, buffer, 0, INT_SIZE);
 
