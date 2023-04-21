@@ -6,62 +6,70 @@ using iTextSharp.text.pdf.parser;
 using System.Drawing;
 public class PDF
 {
-    public byte[] compression(byte[] sourcePdf, int imageMaxWidth = 800)
+    public byte[] compression(byte[] sourcePdf, int imageMaxWidth = 800, int resizeGate = 1048576)
     {
-        MemoryStream ms = new MemoryStream();
-        PdfReader pdf = new PdfReader(sourcePdf);
-
-        PdfStamper stp = new PdfStamper(pdf, ms);
-        PdfWriter writer = stp.Writer;
-
-        for (int pageNumber = 1; pageNumber <= pdf.NumberOfPages; pageNumber++)
+        if (sourcePdf.Length > resizeGate)
         {
-            PdfDictionary pg = pdf.GetPageN(pageNumber);
-            PdfDictionary res = (PdfDictionary)PdfReader.GetPdfObject(pg.Get(PdfName.RESOURCES));
-            PdfDictionary xobj = (PdfDictionary)PdfReader.GetPdfObject(res.Get(PdfName.XOBJECT));
-            if (xobj != null)
+            MemoryStream ms = new MemoryStream();
+            PdfReader pdf = new PdfReader(sourcePdf);
+
+            PdfStamper stp = new PdfStamper(pdf, ms);
+            PdfWriter writer = stp.Writer;
+
+            for (int pageNumber = 1; pageNumber <= pdf.NumberOfPages; pageNumber++)
             {
-                foreach (PdfName name in xobj.Keys)
+                PdfDictionary pg = pdf.GetPageN(pageNumber);
+                PdfDictionary res = (PdfDictionary)PdfReader.GetPdfObject(pg.Get(PdfName.RESOURCES));
+                PdfDictionary xobj = (PdfDictionary)PdfReader.GetPdfObject(res.Get(PdfName.XOBJECT));
+                if (xobj != null)
                 {
-                    PdfObject obj = xobj.Get(name);
-                    if (obj.IsIndirect())
+                    foreach (PdfName name in xobj.Keys)
                     {
-                        PdfDictionary tg = (PdfDictionary)PdfReader.GetPdfObject(obj);
-                        if (tg != null)
+                        PdfObject obj = xobj.Get(name);
+                        if (obj.IsIndirect())
                         {
-                            PdfName type = (PdfName)PdfReader.GetPdfObject(tg.Get(PdfName.SUBTYPE));
-
-                            if (PdfName.IMAGE.Equals(type))
+                            PdfDictionary tg = (PdfDictionary)PdfReader.GetPdfObject(obj);
+                            if (tg != null)
                             {
+                                PdfName type = (PdfName)PdfReader.GetPdfObject(tg.Get(PdfName.SUBTYPE));
 
-                                int XrefIndex = Convert.ToInt32(((PRIndirectReference)obj).Number.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                                PdfObject pdfObj = pdf.GetPdfObject(XrefIndex);
+                                if (PdfName.IMAGE.Equals(type))
+                                {
 
-                                PdfStream pdfStrem = (PdfStream)pdfObj;
-                                byte[] pdfimg = PdfReader.GetStreamBytesRaw((PRStream)pdfStrem);
+                                    int XrefIndex = Convert.ToInt32(((PRIndirectReference)obj).Number.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                                    PdfObject pdfObj = pdf.GetPdfObject(XrefIndex);
 
-                                if (IsImage(pdfimg))
-                                {                                   
-                                    pdfimg = ResizeImage(pdfimg, imageMaxWidth);
-                                    iTextSharp.text.Image img = iTextSharp.text.Image.GetInstance(pdfimg);
-                                    PdfReader.KillIndirect(obj);
-                                    iTextSharp.text.Image maskImage = img.ImageMask;
-                                    if (maskImage != null) writer.AddDirectImageSimple(maskImage);
-                                    writer.AddDirectImageSimple(img, (PRIndirectReference)obj);                                    
+                                    PdfStream pdfStrem = (PdfStream)pdfObj;
+                                    byte[] pdfimg = PdfReader.GetStreamBytesRaw((PRStream)pdfStrem);
+
+                                    if (IsImage(pdfimg))
+                                    {
+                                        pdfimg = ResizeImage(pdfimg, imageMaxWidth);
+                                        iTextSharp.text.Image img = iTextSharp.text.Image.GetInstance(pdfimg);
+                                        PdfReader.KillIndirect(obj);
+                                        iTextSharp.text.Image maskImage = img.ImageMask;
+                                        if (maskImage != null) writer.AddDirectImageSimple(maskImage);
+                                        writer.AddDirectImageSimple(img, (PRIndirectReference)obj);
+                                    }
+                                }
+                                else if (PdfName.FORM.Equals(type))
+                                {
+
                                 }
                             }
-                            else if (PdfName.FORM.Equals(type))
-                            {
 
-                            }
                         }
-
                     }
                 }
             }
+            stp.Close();
+            return ms.ToArray();
         }
-        stp.Close();
-        return ms.ToArray();
+        else
+        {
+            return sourcePdf;
+        }
+
     }
 
     private byte[] ResizeImage(byte[] sourceimg, int maxwidth)
@@ -110,7 +118,7 @@ public class PDF
             var tiff2 = new byte[] { 77, 77, 42 };                   // TIFF
             var jpeg = new byte[] { 255, 216, 255, 224 };            // jpeg
             var jpeg2 = new byte[] { 255, 216, 255, 225 };           // jpeg2 (canon)
-             
+
             var buffer = new byte[INT_SIZE];
             System.Buffer.BlockCopy(byteArray, 0, buffer, 0, INT_SIZE);
 
