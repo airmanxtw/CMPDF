@@ -67,7 +67,10 @@ public class PDF
                 }
             }
             stp.Close();
-            return ms.ToArray();
+            if (ms.ToArray().Length < sourcePdf.Length)
+                return ms.ToArray();
+            else
+                return sourcePdf;
         }
         catch (Exception)
         {
