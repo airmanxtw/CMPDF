@@ -85,6 +85,7 @@ public class PDF
             var newWidth = maxwidth;
             var newHeight = System.Convert.ToInt32(img.Height / (double)img.Width * maxwidth);
             img.Resize(newWidth, newHeight);
+            img.Format = MagickFormat.Jpeg;
             return img.ToByteArray();
         }
         else
