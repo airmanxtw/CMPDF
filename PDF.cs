@@ -6,9 +6,9 @@ using iTextSharp.text.pdf.parser;
 using System.Drawing;
 public class PDF
 {
-    public byte[] compression(byte[] sourcePdf, int imageMaxWidth = 800, int resizeGate = 1048576)
+    public byte[] compression(byte[] sourcePdf, int imageMaxWidth = 800)
     {
-        if (sourcePdf.Length > resizeGate)
+        try
         {
             MemoryStream ms = new MemoryStream();
             PdfReader pdf = new PdfReader(sourcePdf);
@@ -40,9 +40,13 @@ public class PDF
                                     PdfObject pdfObj = pdf.GetPdfObject(XrefIndex);
 
                                     PdfStream pdfStrem = (PdfStream)pdfObj;
+                                    var pdfImage = new PdfImageObject((PRStream)pdfStrem);
+
+                                    var isMask = pdfImage.GetDictionary().Contains(PdfName.SMASK);
+
                                     byte[] pdfimg = PdfReader.GetStreamBytesRaw((PRStream)pdfStrem);
 
-                                    if (IsImage(pdfimg))
+                                    if (IsImage(pdfimg) && !isMask)
                                     {
                                         pdfimg = ResizeImage(pdfimg, imageMaxWidth);
                                         iTextSharp.text.Image img = iTextSharp.text.Image.GetInstance(pdfimg);
@@ -65,11 +69,10 @@ public class PDF
             stp.Close();
             return ms.ToArray();
         }
-        else
+        catch (Exception)
         {
             return sourcePdf;
         }
-
     }
 
     private byte[] ResizeImage(byte[] sourceimg, int maxwidth)
@@ -94,7 +97,6 @@ public class PDF
 
             System.Drawing.Rectangle imageRectangle = new System.Drawing.Rectangle(0, 0, newWidth, newHeight);
             thumbnailGraph.DrawImage(image, imageRectangle);
-
 
             image.Dispose();
             MemoryStream mem = new MemoryStream();
