@@ -1,9 +1,9 @@
 ﻿namespace CMPDF;
-using iTextSharp.text;
+//using iTextSharp.text;
 using iTextSharp.text.pdf;
 using System.IO;
 using iTextSharp.text.pdf.parser;
-using System.Drawing;
+using ImageMagick;
 public class PDF
 {
     public byte[] compression(byte[] sourcePdf, int imageMaxWidth = 800)
@@ -78,30 +78,14 @@ public class PDF
     private byte[] ResizeImage(byte[] sourceimg, int maxwidth)
     {
         MemoryStream sourcemem = new MemoryStream(sourceimg);
-        var img = System.Drawing.Image.FromStream(sourcemem);
-        System.Drawing.Image image = img;
-        var _width = image.Width;
-        var _height = image.Height;
+        var img = new MagickImage(sourcemem);
 
-        if ((_width > maxwidth))
+        if ((img.Width > maxwidth))
         {
             var newWidth = maxwidth;
-            var newHeight = System.Convert.ToInt32(_height / (double)_width * maxwidth);
-
-            System.Drawing.Bitmap thumbnailBitmap = new System.Drawing.Bitmap(newWidth, newHeight);
-            System.Drawing.Graphics thumbnailGraph = System.Drawing.Graphics.FromImage(thumbnailBitmap);
-
-            thumbnailGraph.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-            thumbnailGraph.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-            thumbnailGraph.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.High;
-
-            System.Drawing.Rectangle imageRectangle = new System.Drawing.Rectangle(0, 0, newWidth, newHeight);
-            thumbnailGraph.DrawImage(image, imageRectangle);
-
-            image.Dispose();
-            MemoryStream mem = new MemoryStream();
-            thumbnailBitmap.Save(mem, System.Drawing.Imaging.ImageFormat.Jpeg);
-            return mem.ToArray();
+            var newHeight = System.Convert.ToInt32(img.Height / (double)img.Width * maxwidth);
+            img.Resize(newWidth, newHeight);
+            return img.ToByteArray();
         }
         else
             return sourceimg;
