@@ -82,7 +82,6 @@ public class PDF
     {
         MemoryStream sourcemem = new MemoryStream(sourceimg);
         var img = new MagickImage(sourcemem);
-
         if ((img.Width > maxwidth))
         {
             var newWidth = maxwidth;
