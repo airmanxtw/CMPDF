@@ -7,7 +7,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageId>CMPDF</PackageId>
-    <Version>0.2.2</Version>
+    <Version>0.3.0</Version>
     <PackageTags>pdf;resizeImage;reduceSize</PackageTags>
     <PackageProjectUrl>https://github.com/airmanxtw/CMPDF</PackageProjectUrl>
     <PackageDescription>reduce PDF image size to reduce the PDF file size</PackageDescription>
