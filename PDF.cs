@@ -81,17 +81,25 @@ public class PDF
     public byte[] ResizeImage(byte[] sourceimg, int maxwidth, bool toJpeg = true)
     {
         MemoryStream sourcemem = new MemoryStream(sourceimg);
-        var img = new MagickImage(sourcemem);
-        if ((img.Width > maxwidth))
+        try
         {
-            var newWidth = maxwidth;
-            var newHeight = System.Convert.ToInt32(img.Height / (double)img.Width * maxwidth);
-            img.Resize(newWidth, newHeight);
-            if (toJpeg) img.Format = MagickFormat.Jpeg;
-            return img.ToByteArray();
+            var img = new MagickImage(sourcemem);
+            if ((img.Width > maxwidth))
+            {
+                var newWidth = maxwidth;
+                var newHeight = System.Convert.ToInt32(img.Height / (double)img.Width * maxwidth);
+                img.Resize(newWidth, newHeight);
+                if (toJpeg) img.Format = MagickFormat.Jpeg;
+                return img.ToByteArray();
+            }
+            else
+                return sourceimg;
         }
-        else
+        catch (Exception)
+        {
             return sourceimg;
+        }
+
     }
 
     private string GetImageFormat(byte[] byteArray)
