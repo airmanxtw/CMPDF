@@ -4,6 +4,8 @@ using iTextSharp.text.pdf;
 using System.IO;
 using iTextSharp.text.pdf.parser;
 using ImageMagick;
+using Ionic.Zip;
+
 public class PDF
 {
     public byte[] compression(byte[] sourcePdf, int imageMaxWidth = 800)
@@ -100,6 +102,32 @@ public class PDF
             return sourceimg;
         }
 
+    }
+
+    public byte[] ResizeZip(byte[] sourceZip, int maxwidth)
+    {
+        MemoryStream ms = new MemoryStream(sourceZip);
+        ZipFile source = ZipFile.Read(ms);
+        ZipFile target = new ZipFile();
+        List<string> imgs = new List<string>() { ".jpg", ".jpeg", ".png" };
+        List<string> zips = new List<string>() {".zip",".docx",".pptx",".xlsx"};
+        foreach (var item in source.Entries)
+        {
+            MemoryStream itemBytes = new MemoryStream();
+            item.Extract(itemBytes);
+            string ext = System.IO.Path.GetExtension(item.FileName).ToLower();
+            if (imgs.Contains(ext))
+                target.AddEntry(item.FileName, ResizeImage(itemBytes.ToArray(), maxwidth));
+            else if (ext == ".pdf")
+                target.AddEntry(item.FileName, compression(itemBytes.ToArray(), maxwidth));
+            else if (zips.Contains(ext))
+                target.AddEntry(item.FileName, ResizeZip(itemBytes.ToArray(), maxwidth));
+            else
+                target.AddEntry(item.FileName, itemBytes.ToArray());
+        };
+        MemoryStream outms = new MemoryStream();
+        target.Save(outms);
+        return outms.ToArray();
     }
 
     private string GetImageFormat(byte[] byteArray)
