@@ -5,6 +5,7 @@ using System.IO;
 using iTextSharp.text.pdf.parser;
 using ImageMagick;
 using Ionic.Zip;
+using System.Text;
 
 public class PDF
 {
@@ -107,15 +108,19 @@ public class PDF
     public byte[] ResizeZip(byte[] sourceZip, int maxwidth)
     {
         MemoryStream ms = new MemoryStream(sourceZip);
-        ZipFile source = ZipFile.Read(ms);
-        ZipFile target = new ZipFile();
+        var options=new ReadOptions();
+        options.Encoding=Encoding.UTF8;
+        
+        ZipFile source = ZipFile.Read(ms,options);
+        ZipFile target = new ZipFile(Encoding.UTF8);
+       
         List<string> imgs = new List<string>() { ".jpg", ".jpeg", ".png" };
-        List<string> zips = new List<string>() {".zip",".docx",".pptx",".xlsx"};
+        List<string> zips = new List<string>() { ".zip", ".docx", ".pptx", ".xlsx" };
         foreach (var item in source.Entries)
         {
             MemoryStream itemBytes = new MemoryStream();
-            item.Extract(itemBytes);
-            string ext = System.IO.Path.GetExtension(item.FileName).ToLower();
+            item.Extract(itemBytes);            
+            string ext = System.IO.Path.GetExtension(item.FileName).ToLower();            
             if (imgs.Contains(ext))
                 target.AddEntry(item.FileName, ResizeImage(itemBytes.ToArray(), maxwidth));
             else if (ext == ".pdf")
