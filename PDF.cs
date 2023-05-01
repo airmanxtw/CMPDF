@@ -6,7 +6,7 @@ using iTextSharp.text.pdf.parser;
 using ImageMagick;
 using System.Text;
 using Ionic.Zip;
-using System.IO.Compression;
+//using System.IO.Compression;
 
 public class PDF
 {
@@ -109,48 +109,47 @@ public class PDF
     public byte[] ResizeZip(byte[] sourceZip, int maxwidth)
     {    
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);  
-        MemoryStream ms = new MemoryStream(sourceZip);
-        var archive = new ZipArchive(ms,ZipArchiveMode.Read,true,Encoding.GetEncoding("Big5") );
-        var test = archive.Entries[1].FullName;
-        return null;
-
         // MemoryStream ms = new MemoryStream(sourceZip);
-        // var options = new ReadOptions();
-        // options.Encoding = Encoding.UTF8;
+        // var archive = new ZipArchive(ms,ZipArchiveMode.Read,true,Encoding.GetEncoding("Big5") );
+        // var test = archive.Entries[1].FullName;
+        // return null;
 
-        // ZipFile source = ZipFile.Read(ms, options);
-        // ZipFile target = new ZipFile(Encoding.UTF8);
+        MemoryStream ms = new MemoryStream(sourceZip);
+        var options = new ReadOptions();
+        options.Encoding = Encoding.GetEncoding("Big5");
+        ZipFile source = ZipFile.Read(ms, options);
+        ZipFile target = new ZipFile(Encoding.GetEncoding("Big5"));
 
         // source.AlternateEncodingUsage = ZipOption.Always;
         // source.AlternateEncoding = Encoding.UTF8;
         
-        // // target.AlternateEncodingUsage = ZipOption.Always;
-        // // target.AlternateEncoding = Encoding.UTF8;
+        // target.AlternateEncodingUsage = ZipOption.Always;
+        // target.AlternateEncoding = Encoding.UTF8;
 
-        // List<string> imgs = new List<string>() { ".jpg", ".jpeg", ".png" };
-        // List<string> zips = new List<string>() { ".zip", ".docx", ".pptx", ".xlsx" };
-        // foreach (var item in source.Entries)
-        // {
-        //     MemoryStream itemBytes = new MemoryStream();
-        //     item.AlternateEncodingUsage=ZipOption.Always;
-        //     item.AlternateEncoding = Encoding.UTF8;
+        List<string> imgs = new List<string>() { ".jpg", ".jpeg", ".png" };
+        List<string> zips = new List<string>() { ".zip", ".docx", ".pptx", ".xlsx" };
+        foreach (var item in source.Entries)
+        {
+            MemoryStream itemBytes = new MemoryStream();
+            // item.AlternateEncodingUsage=ZipOption.Always;
+            // item.AlternateEncoding = Encoding.UTF8;
 
-        //     item.Extract(itemBytes);
+            item.Extract(itemBytes);
 
 
-        //     string ext = System.IO.Path.GetExtension(item.FileName).ToLower();
-        //     if (imgs.Contains(ext))
-        //         target.AddEntry(item.FileName, ResizeImage(itemBytes.ToArray(), maxwidth));
-        //     else if (ext == ".pdf")
-        //         target.AddEntry(item.FileName, compression(itemBytes.ToArray(), maxwidth));
-        //     else if (zips.Contains(ext))
-        //         target.AddEntry(item.FileName, ResizeZip(itemBytes.ToArray(), maxwidth));
-        //     else
-        //         target.AddEntry(item.FileName, itemBytes.ToArray());
-        // };
-        // MemoryStream outms = new MemoryStream();
-        // target.Save(outms);
-        // return outms.ToArray();
+            string ext = System.IO.Path.GetExtension(item.FileName).ToLower();
+            if (imgs.Contains(ext))
+                target.AddEntry(item.FileName, ResizeImage(itemBytes.ToArray(), maxwidth));
+            else if (ext == ".pdf")
+                target.AddEntry(item.FileName, compression(itemBytes.ToArray(), maxwidth));
+            else if (zips.Contains(ext))
+                target.AddEntry(item.FileName, ResizeZip(itemBytes.ToArray(), maxwidth));
+            else
+                target.AddEntry(item.FileName, itemBytes.ToArray());
+        };
+        MemoryStream outms = new MemoryStream();
+        target.Save(outms);
+        return outms.ToArray();
     }
 
     private string GetImageFormat(byte[] byteArray)
