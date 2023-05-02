@@ -105,37 +105,23 @@ public class PDF
         }
 
     }
-    
-    public byte[] ResizeZip(byte[] sourceZip, int maxwidth)
-    {    
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);  
-        // MemoryStream ms = new MemoryStream(sourceZip);
-        // var archive = new ZipArchive(ms,ZipArchiveMode.Read,true,Encoding.GetEncoding("Big5") );
-        // var test = archive.Entries[1].FullName;
-        // return null;
 
+    public byte[] ResizeZip(byte[] sourceZip, int maxwidth)
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         MemoryStream ms = new MemoryStream(sourceZip);
         var options = new ReadOptions();
-        options.Encoding = Encoding.GetEncoding("Big5");
+        var CODE = getCODE(sourceZip);
+        options.Encoding = Encoding.GetEncoding(CODE);
         ZipFile source = ZipFile.Read(ms, options);
-        ZipFile target = new ZipFile(Encoding.GetEncoding("Big5"));
-
-        // source.AlternateEncodingUsage = ZipOption.Always;
-        // source.AlternateEncoding = Encoding.UTF8;
-        
-        // target.AlternateEncodingUsage = ZipOption.Always;
-        // target.AlternateEncoding = Encoding.UTF8;
+        ZipFile target = new ZipFile(Encoding.GetEncoding(CODE));
 
         List<string> imgs = new List<string>() { ".jpg", ".jpeg", ".png" };
         List<string> zips = new List<string>() { ".zip", ".docx", ".pptx", ".xlsx" };
         foreach (var item in source.Entries)
         {
             MemoryStream itemBytes = new MemoryStream();
-            // item.AlternateEncodingUsage=ZipOption.Always;
-            // item.AlternateEncoding = Encoding.UTF8;
-
             item.Extract(itemBytes);
-
 
             string ext = System.IO.Path.GetExtension(item.FileName).ToLower();
             if (imgs.Contains(ext))
@@ -152,6 +138,12 @@ public class PDF
         return outms.ToArray();
     }
 
+    private string getCODE(byte[] byteArray)
+    {
+        MemoryStream ms = new MemoryStream(byteArray);
+        ZipFile source = ZipFile.Read(ms);
+        return source.Entries.Select(e => e.FileName).Any(filename => filename.Contains("__MACOSX")) ? "utf-8" : "Big5";
+    }
     private string GetImageFormat(byte[] byteArray)
     {
         try
