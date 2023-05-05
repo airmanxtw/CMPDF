@@ -116,7 +116,7 @@ public class PDF
         ZipFile source = ZipFile.Read(ms, options);
         ZipFile target = new ZipFile(Encoding.GetEncoding(CODE));
 
-        List<string> imgs = new List<string>() { ".jpg", ".jpeg", ".png" };
+        List<string> imgs = new List<string>() { ".jpg", ".jpeg", ".png",".emf" };
         List<string> zips = new List<string>() { ".zip", ".docx", ".pptx", ".xlsx" };
         foreach (var item in source.Entries)
         {
