@@ -7,12 +7,15 @@ using ImageMagick;
 using System.Text;
 using Ionic.Zip;
 using SharpCompress.Archives.Rar;
+using SharpCompress.Archives;
+using SharpCompress.Common;
 
 //using System.IO.Compression;
 
+#pragma warning disable CA1822
 public class PDF
 {
-    public static byte[] Compression(byte[] sourcePdf, int imageMaxWidth = 800)
+    public byte[] Compression(byte[] sourcePdf, int imageMaxWidth = 800)
     {
         try
         {
@@ -84,7 +87,7 @@ public class PDF
         }
     }
 
-    public static byte[] ResizeImage(byte[] sourceimg, int maxwidth, bool toJpeg = true)
+    public byte[] ResizeImage(byte[] sourceimg, int maxwidth, bool toJpeg = true)
     {
         MemoryStream sourcemem = new(sourceimg);
         try
@@ -140,34 +143,54 @@ public class PDF
         return outms.ToArray();
     }
 
-    public static byte[] ResizeRar(byte[] sourceRar, int maxwidth)
+    public byte[] ResizeRar(byte[] sourceRar, int maxwidth)
     {
         MemoryStream ms = new(sourceRar);
         using var archive = RarArchive.Open(ms);
         foreach (var entry in archive.Entries.Where(entry => !entry.IsDirectory))
         {
-            var s=100;
-            // entry.WriteToDirectory("D:\\temp", new ExtractionOptions()
-            // {
-            //     ExtractFullPath = true,
-            //     Overwrite = true
-            // });
+            // get entry filename and exten
+            string ext = System.IO.Path.GetExtension(entry.Key).ToLower();
+
+            // get entry stream
+            MemoryStream itemBytes = new();
+            entry.WriteTo(itemBytes);
+
+            // resize image
+            if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".emf")
+            {
+                itemBytes = new MemoryStream(ResizeImage(itemBytes.ToArray(), maxwidth));
+            }
+            // resize pdf
+            else if (ext == ".pdf")
+            {
+                itemBytes = new MemoryStream(Compression(itemBytes.ToArray(), maxwidth));
+            }
+
+        
+
+            
+            entry.WriteToDirectory("D:\\temp", new ExtractionOptions()
+            {
+                ExtractFullPath = true,
+                Overwrite = true
+            });
         }
         return null;
     }
 
-    public static string Hello()
+    public string Hello()
     {
         return "Hello";
     }
 
-    private static string GetCODE(byte[] byteArray)
+    private string GetCODE(byte[] byteArray)
     {
         MemoryStream ms = new(byteArray);
         ZipFile source = ZipFile.Read(ms);
         return source.Entries.Select(e => e.FileName).Any(filename => filename.Contains("__MACOSX")) ? "utf-8" : "Big5";
     }
-    private static string GetImageFormat(byte[] byteArray)
+    private string GetImageFormat(byte[] byteArray)
     {
         try
         {
@@ -213,7 +236,7 @@ public class PDF
         }
     }
 
-    private static bool IsImage(byte[] byteArray)
+    private bool IsImage(byte[] byteArray)
     {
         return GetImageFormat(byteArray) != "unknown";
     }
