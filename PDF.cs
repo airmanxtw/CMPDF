@@ -6,18 +6,20 @@ using iTextSharp.text.pdf.parser;
 using ImageMagick;
 using System.Text;
 using Ionic.Zip;
+using SharpCompress.Archives.Rar;
+
 //using System.IO.Compression;
 
 public class PDF
 {
-    public byte[] compression(byte[] sourcePdf, int imageMaxWidth = 800)
+    public static byte[] Compression(byte[] sourcePdf, int imageMaxWidth = 800)
     {
         try
         {
-            MemoryStream ms = new MemoryStream();
-            PdfReader pdf = new PdfReader(sourcePdf);
+            MemoryStream ms = new();
+            PdfReader pdf = new(sourcePdf);
 
-            PdfStamper stp = new PdfStamper(pdf, ms);
+            PdfStamper stp = new(pdf, ms);
             PdfWriter writer = stp.Writer;
 
             for (int pageNumber = 1; pageNumber <= pdf.NumberOfPages; pageNumber++)
@@ -82,9 +84,9 @@ public class PDF
         }
     }
 
-    public byte[] ResizeImage(byte[] sourceimg, int maxwidth, bool toJpeg = true)
+    public static byte[] ResizeImage(byte[] sourceimg, int maxwidth, bool toJpeg = true)
     {
-        MemoryStream sourcemem = new MemoryStream(sourceimg);
+        MemoryStream sourcemem = new(sourceimg);
         try
         {
             var img = new MagickImage(sourcemem);
@@ -109,42 +111,63 @@ public class PDF
     public byte[] ResizeZip(byte[] sourceZip, int maxwidth)
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        MemoryStream ms = new MemoryStream(sourceZip);
+        MemoryStream ms = new(sourceZip);
         var options = new ReadOptions();
-        var CODE = getCODE(sourceZip);
+        var CODE = GetCODE(sourceZip);
         options.Encoding = Encoding.GetEncoding(CODE);
         ZipFile source = ZipFile.Read(ms, options);
-        ZipFile target = new ZipFile(Encoding.GetEncoding(CODE));
+        ZipFile target = new(Encoding.GetEncoding(CODE));
 
-        List<string> imgs = new List<string>() { ".jpg", ".jpeg", ".png",".emf" };
-        List<string> zips = new List<string>() { ".zip", ".docx", ".pptx", ".xlsx" };
+        List<string> imgs = new() { ".jpg", ".jpeg", ".png", ".emf" };
+        List<string> zips = new() { ".zip", ".docx", ".pptx", ".xlsx" };
         foreach (var item in source.Entries)
         {
-            MemoryStream itemBytes = new MemoryStream();
+            MemoryStream itemBytes = new();
             item.Extract(itemBytes);
 
             string ext = System.IO.Path.GetExtension(item.FileName).ToLower();
             if (imgs.Contains(ext))
                 target.AddEntry(item.FileName, ResizeImage(itemBytes.ToArray(), maxwidth));
             else if (ext == ".pdf")
-                target.AddEntry(item.FileName, compression(itemBytes.ToArray(), maxwidth));
+                target.AddEntry(item.FileName, Compression(itemBytes.ToArray(), maxwidth));
             else if (zips.Contains(ext))
                 target.AddEntry(item.FileName, ResizeZip(itemBytes.ToArray(), maxwidth));
             else
                 target.AddEntry(item.FileName, itemBytes.ToArray());
         };
-        MemoryStream outms = new MemoryStream();
+        MemoryStream outms = new();
         target.Save(outms);
         return outms.ToArray();
     }
 
-    private string getCODE(byte[] byteArray)
+    public static byte[] ResizeRar(byte[] sourceRar, int maxwidth)
     {
-        MemoryStream ms = new MemoryStream(byteArray);
+        MemoryStream ms = new(sourceRar);
+        using var archive = RarArchive.Open(ms);
+        foreach (var entry in archive.Entries.Where(entry => !entry.IsDirectory))
+        {
+            var s=100;
+            // entry.WriteToDirectory("D:\\temp", new ExtractionOptions()
+            // {
+            //     ExtractFullPath = true,
+            //     Overwrite = true
+            // });
+        }
+        return null;
+    }
+
+    public static string Hello()
+    {
+        return "Hello";
+    }
+
+    private static string GetCODE(byte[] byteArray)
+    {
+        MemoryStream ms = new(byteArray);
         ZipFile source = ZipFile.Read(ms);
         return source.Entries.Select(e => e.FileName).Any(filename => filename.Contains("__MACOSX")) ? "utf-8" : "Big5";
     }
-    private string GetImageFormat(byte[] byteArray)
+    private static string GetImageFormat(byte[] byteArray)
     {
         try
         {
@@ -190,8 +213,8 @@ public class PDF
         }
     }
 
-    private bool IsImage(byte[] byteArray)
+    private static bool IsImage(byte[] byteArray)
     {
-        return GetImageFormat(byteArray) != "unknown" ? true : false;
+        return GetImageFormat(byteArray) != "unknown";
     }
 }
