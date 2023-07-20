@@ -13,6 +13,9 @@
     <PackageDescription>reduce PDF image size to reduce the PDF file size</PackageDescription>
     <Authors>airmanx</Authors>
     <Company>STUST</Company>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
+    <RunAnalyzers>false</RunAnalyzers>
   </PropertyGroup>
   <ItemGroup>      
     <None Include="README.md" Pack="true" PackagePath="\" />        
