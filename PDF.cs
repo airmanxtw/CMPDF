@@ -11,6 +11,7 @@ using System.IO.Compression;
 
 //using System.IO.Compression;
 
+#pragma warning disable CA1822
 public class PDF
 {
     public byte[] Compression(byte[] sourcePdf, int imageMaxWidth = 800)
@@ -148,17 +149,37 @@ public class PDF
         
         foreach (var entry in archive.Entries.Where(entry => !entry.IsDirectory))
         {
-            var s=100;
-            // entry.WriteToDirectory("D:\\temp", new ExtractionOptions()
-            // {
-            //     ExtractFullPath = true,
-            //     Overwrite = true
-            // });
+            // get entry filename and exten
+            string ext = System.IO.Path.GetExtension(entry.Key).ToLower();
+
+            // get entry stream
+            MemoryStream itemBytes = new();
+            entry.WriteTo(itemBytes);
+
+            // resize image
+            if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".emf")
+            {
+                itemBytes = new MemoryStream(ResizeImage(itemBytes.ToArray(), maxwidth));
+            }
+            // resize pdf
+            else if (ext == ".pdf")
+            {
+                itemBytes = new MemoryStream(Compression(itemBytes.ToArray(), maxwidth));
+            }
+
+        
+
+            
+            entry.WriteToDirectory("D:\\temp", new ExtractionOptions()
+            {
+                ExtractFullPath = true,
+                Overwrite = true
+            });
         }
         return null;
     }
 
-    public static string Hello()
+    public string Hello()
     {
         return "Hello";
     }
